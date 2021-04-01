@@ -1,8 +1,17 @@
 ### Table of Contents  
-[ESPset dataset description](#ESPsetIntro)  
-[Experimental Framework](#ExpFramework)
+<!-- toc -->
 
-<a name="ESPsetIntro"/>
+- [ESPset dataset description](#espset-dataset-description)  
+    - [spectrum.csv](#spectrumcsv)  
+    - [features.csv](#featurescsv)  
+- [Experimental Framework](#experimental-framework)  
+    - [Requirements](#requirements)
+    - [How to run (.yaml configuration file)](#how-to-run-yaml-configuration-file)
+    - [Benchmark classifiers](#benchmark-classifiers)
+    - [Paper Experiments](#paper-experiments)
+
+<!-- tocstop -->
+
 # ESPset dataset description
 This repository provides the ESPset dataset, a real-world dataset for vibration-based fault diagnosis of electric submersible pumps used on offshore oil exploration.
 In addition to that, this repository also provides an experimental framework for adequately comparing research works based on the ESPset dataset and defines some benchmark classifiers.
@@ -45,7 +54,7 @@ Let F be defined as the rotation frequency in which the BCS is operated. Each fe
 - rms(F-1,F+1) Root mean square of the amplitudes in the interval (F-1, F+1).
 \end{itemize}
 
-<a name="ExpFramework"/>
+
 # Experimental Framework
 In order to facilate research on this dataset, we provide an easy quick usage and customization of experiments in this dataset.
 See notebook tutorial.ipynb for details.
@@ -89,7 +98,7 @@ These are the valid keywords insided the yaml file:
 
 
 ## Benchmark classifiers
-We provide some baseline classifiers and their respectives results as referential.
+We provide some baseline classifiers and their respectives results as a referential.
 The configuration file for running the baseline classifiers is configs/benchmark.xml?.
 1. Triplet Network + Random forest: Achieved an average macro F-measure of ?
 2. Hand-crafted features + Random forest: Achieved an average macro F-measure of ?
