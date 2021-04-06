@@ -36,18 +36,13 @@ signals = np.loadtxt('data/spectrum.csv', delimiter=';')
 
 ## features.csv
 This csv file of 6033 lines (one line for each signal + a header), contains some features and the labels for all signals.
-- component: The type of the component in which the sensor of the vibration signal is attached. Can be "Motor", "Pump" or "Protector".
-- comp_number: The component number, in order to distinguish ESP with two components of the same type (e.g two pumps).
-- axis: The axis in which the sensor attached. Can be "X" or "Y".
-- position: The relative height in which the sensor is attached. A value of 1.0 means at the top of the component, and a value of 0.5 means at the middle of the component.
-- flow or lrnumber: ?
 - esp_id: The id of the ESP.
 - label: The classification.
 Let F be defined as the rotation frequency in which the BCS is operated. Each feature is defined as:
 - median(3,5): Median of the amplitudes in the interval (3Hz, 5Hz);
 - median(F-1,F+1) Median of the amplitudes in the interval (F-1Hz, F+1Hz);
 - a: Coefficient a of the exponential regression of type e^(aX+b) where X is an array of equally separated frequencies from 5Hz to 19Hz.
-- b: Coefficient b of the exponential regression of type e^{(aX+b)} in the interval (5Hz, 19Hz);
+- b: Coefficient b of the exponential regression of type e^(aX+b) in the interval (5Hz, 19Hz);
 - rotation1x: Frequency of the highest amplitude in the interval (F-3Hz, F-0.2Hz);
 - peak1x: Amplitude in rotation1x;
 - peak2x: Amplitude in 2 rotation1x;
@@ -60,10 +55,13 @@ In order to facilate research on this dataset, we provide an easy quick usage an
 See notebook tutorial.ipynb for details.
 
 ## Requirements
-The code was only tested in Python 3.8. To install requirements, run
+The code was only tested in Python 3.8 and Ubuntu 20.04, but should work without any modifications in Python 3.7+ and/or Windows.
+Pytorch 1.7+ with cuda is required for running the benchmark classifier Triplet network.
+To install requirements, run
 ```bash
 pip install -r requirements.txt
 ```
+
 
 ## How to run (.yaml configuration file)
 The framework can be run using the script [test.py](test.py). The script takes a yaml configuration file as an argument, informing how the experiment should be done. Examples of this configuration file are found in the [configs](configs) directory.
@@ -100,7 +98,7 @@ These are the valid keywords insided the yaml file:
 ## Benchmark classifiers
 We provide some baseline classifiers and their respectives results as a referential.
 The configuration file for running the baseline classifiers is configs/benchmark.xml?.
-1. Triplet Network + Random forest: Achieved an average macro F-measure of ?
+1. Triplet Network + Random forest: Achieved an average macro F-measure of ?. The code regarding the usage of Triplet network is found in file ?.
 2. Hand-crafted features + Random forest: Achieved an average macro F-measure of ?
 
 ## Paper Experiments
