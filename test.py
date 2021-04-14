@@ -112,6 +112,9 @@ if __name__ == '__main__':
     signals = np.loadtxt('%s/spectrum.csv' % args.inputdata, delimiter=';', dtype=np.float32)
     features = pd.read_csv('%s/features.csv' % args.inputdata, sep=';', index_col='id')
     labels, _ = features['label'].factorize()
-    esp_id = features['esp_id']
+    if('esp_id' in features):
+        esp_id = features['esp_id']
+    else:
+        esp_id = None
 
     main(signals, features, labels, esp_id, config)
