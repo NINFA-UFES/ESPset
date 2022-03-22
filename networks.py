@@ -1,15 +1,13 @@
 from datetime import datetime
 import os
 from callbacks import LoadEndState
-from torch import optim
 from tempfile import mkdtemp
 from torch.nn import functional as F
 from skorch.utils import to_tensor, to_device
 from skorch.dataset import unpack_data
 from torch.utils.tensorboard import SummaryWriter
-from skorch.dataset import uses_placeholder_y
 from skorch import NeuralNet
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import TransformerMixin
 import numpy as np
 from datahandler import BalancedDataLoader
 import torch
@@ -73,11 +71,6 @@ class NeuralNetBase(NeuralNet):
                                                           monitor=self.monitor_loss + '_best',  # monitor='non_zero_triplets_best',  # monitor='train_loss_best'
                                                           f_params='best_epoch_params.pt',
                                                           f_history=None, f_optimizer=None, f_criterion=None)
-        # lrscheduler = skorch.callbacks.LRScheduler(policy=optim.lr_scheduler.StepLR,
-        #                                            step_size=30, gamma=0.8, event_name=None)
-        # É possível dar nomes ao callbacks para poder usar gridsearch neles: https://skorch.readthedocs.io/en/stable/user/callbacks.html#learning-rate-schedulers
-
-        # callbacks = [('non_zero_triplets', skorch.callbacks.PassthroughScoring(name='non_zero_triplets', on_train=True))]
         current_time = datetime.now().strftime('%b%d_%H-%M-%S')
         log_dir = os.path.join('runs', CURRENT_TIME, current_time + '_' + socket.gethostname())
         callbacks = [TensorBoardCallback(SummaryWriter(log_dir=log_dir))]
@@ -89,18 +82,26 @@ class NeuralNetBase(NeuralNet):
 
     def fit(self, X, y, **fit_params):
         if(self.cache_dir is not None):
-            cache_filename = self.get_cache_filename(X)
+            cache_filename = self.get_cache_filename(X, y)
             if(os.path.isfile(cache_filename)):
                 if not self.warm_start or not self.initialized_:
-                    self.initialize_virtual_params()
-                    self.initialize_criterion()
-                    self.initialize_module()
-                    self.initialized_ = True
+                    self.initialize()
+                print("loading cached neuralnet '%s'" % cache_filename)
                 self.load_params(f_params=cache_filename)
 
                 return self
             super().fit(X, y, **fit_params)
-            self.save_params(f_params=cache_filename)
+
+            # Only save if user did not interrupted the training process.
+            if(len(self.history) == self.max_epochs):
+                self.save_params(f_params=cache_filename)
+            else:
+                for _, cb in self.callbacks_:
+                    if(isinstance(cb, skorch.callbacks.EarlyStopping)):
+                        if(cb.misses_ == cb.patience):
+                            self.save_params(f_params=cache_filename)
+                            break
+
         else:
             super().fit(X, y, **fit_params)
         return self
@@ -126,19 +127,38 @@ class NeuralNetBase(NeuralNet):
         params = {k: v for k, v in params.items() if not('callbacks' in k)}
         return params
 
-    def get_cache_filename(self, X) -> str:
+    def get_cache_filename(self, X, y) -> str:
         import hashlib
+
+        if(isinstance(X, dict)):
+            Xf = X['X']
+        else:
+            Xf = X
+
         m = hashlib.md5()
         m.update(self.__class__.__name__.encode('utf-8'))
-        n = len(X)
+        n = len(Xf)
+
         for k, v in self.get_params().items():
+            if(k == 'cache_dir'):
+                continue
             if(type(v) in (int, float, bool, str)):
                 s = '%s:%s' % (str(k), str(v))
+            elif(type(v) in (dict, list, tuple)):
+                s = '%s:%s' % (str(k), str(len(v)))
+            elif(isinstance(v, type)):
+                s = '%s:%s' % (str(k), v.__name__)
             else:
                 s = '%s:%s' % (str(k), v.__class__.__name__)
             m.update(s.encode('utf-8'))
         m.update(str(n).encode('utf-8'))
-        m.update(str(X[:, 0]).encode('utf-8'))
+        m.update(str(Xf[0]).encode('utf-8'))
+        m.update(str(Xf[1]).encode('utf-8'))
+
+        m.update(str(y[0]).encode('utf-8'))
+        m.update(str(y.max()).encode('utf-8'))
+        m.update(str(y[:n//2].sum()).encode('utf-8'))
+        m.update(str(y[n//2:].sum()).encode('utf-8'))
 
         fname = m.hexdigest()
         return f"{self.cache_dir}/{fname}.pkl"
