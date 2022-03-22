@@ -1,20 +1,9 @@
-import skorch
-import torch
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.pipeline import FeatureUnion
-from torch import optim
 from adabelief_pytorch import AdaBelief
-from sklearn.model_selection import StratifiedShuffleSplit
-import numpy as np
-import os
 from tempfile import mkdtemp
-import pytorch_metric_learning
-from pytorch_metric_learning.losses import BaseMetricLossFunction, TripletMarginLoss
 from pytorch_metric_learning import losses
-from pytorch_metric_learning.miners import BaseMiner
-from pytorch_metric_learning.trainers import MetricLossOnly
 from datahandler import BalancedDataLoader
 from networks import myEmbeddingNet, NeuralNetTransformer
+from skorch.dataset import ValidSplit
 
 
 def split_gridsearchparams(params):
@@ -72,7 +61,7 @@ def createConvNet(n_classes, last_layer_size, **feature_extractor_params):
     parameters = {
         'device': 'cuda',
         'max_epochs': 300,
-        'train_split': None,
+        'train_split': ValidSplit(9, stratified=True),
         'batch_size': 80,
         'iterator_train': BalancedDataLoader, 'iterator_train__num_workers': 0, 'iterator_train__pin_memory': False,
         'iterator_valid': BalancedDataLoader, 'iterator_valid__num_workers': 0, 'iterator_valid__pin_memory': False}
@@ -105,16 +94,19 @@ def create_MetricLearningNetwork(loss_function='tripletloss', **feature_extracto
         'device': 'cuda',
         'module': myEmbeddingNet, 'module__num_outputs': 8,
         'max_epochs': 300,
-        'train_split': None,  # skorch.dataset.CVSplit(5, stratified=True),
+        'train_split': ValidSplit(9, stratified=True),
         'iterator_train': BalancedDataLoader, 'iterator_train__num_workers': 0, 'iterator_train__pin_memory': False,
         'iterator_valid': BalancedDataLoader, 'iterator_valid__num_workers': 0, 'iterator_valid__pin_memory': False}
     parameters = {**parameters, **optimizer_parameters}
 
-    loss_func_params = {"criterion__%s" % k.split('__', 1)[1]: v for k, v in feature_extractor_params.items()
+    ### Renaming "loss_function__" parameters to "criterion__" ###
+    loss_func_params = {k.split('__', 1)[1]: v for k, v in feature_extractor_params.items()
                         if 'loss_function__' in k}
     for k in loss_func_params.keys():
         del feature_extractor_params['loss_function__'+k]
+    loss_func_params = {"criterion__%s" % k: v for k, v in loss_func_params.items()}
     feature_extractor_params, gridsearch_params = split_gridsearchparams(feature_extractor_params)
+    ###############################################################
 
     parameters.update(feature_extractor_params)
     loss_function_cls = _processLossFunctionParams(loss_function)

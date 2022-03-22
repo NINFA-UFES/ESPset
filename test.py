@@ -59,8 +59,7 @@ def main(signals, features, Y, esp_ids, config):
     fe_list = config.getFeatureExtractors()
     for classifier_name, classifier in combineTransformerClassifier(fe_list, base_classifiers):
         print(classifier_name)
-        Results[classifier_name] = cross_validate(
-            classifier, X, Y, groups=esp_ids, scoring=scoring, cv=sampler)
+        Results[classifier_name] = cross_validate(classifier, X, Y, groups=esp_ids, scoring=scoring, cv=sampler)
 
     if(config.train_single_classifiers):
         ICTAI2016_features = ['a', 'b', 'real_rotation_hz', 'peak1x', 'peak2x', 'rms(freq-1,freq+1)',

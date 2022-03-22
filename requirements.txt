@@ -7,3 +7,4 @@ pandas>=0.24
 PyYAML>=5.4.1
 tensorboard>=2.4.1
 adabelief-pytorch>=0.2.0
+pytorch_metric_learning

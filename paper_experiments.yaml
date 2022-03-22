@@ -11,13 +11,6 @@ cross_validation:
   random_state: 10
 
 feature_extractors:
-  - feature_extractors.createTripletNetwork:
-      name: triplenet
-      init_random_state: 10
-      module__num_outputs: 8
-      learning_rate: [1.0e-4, 1.0e-3]
-      max_epochs: 500
-      batch_size: 200
   - feature_extractors.createConvNet:
       name: convnet
       init_random_state: 10
@@ -26,6 +19,18 @@ feature_extractors:
       max_epochs: 500
       batch_size: 200
       n_classes: 5
+
+  - feature_extractors.create_MetricLearningNetwork:
+      name: tripletloss
+      init_random_state: 10
+      module__num_outputs: 8
+      learning_rate: [1.0e-4, 1.0e-3]
+      max_epochs: 500
+      batch_size: 200
+      loss_function: tripletloss
+      loss_function__margin: 0.2
+      loss_function__triplets_per_anchor: 20
+      monitor_loss: train_loss
 
 base_classifiers:
   - knn:
