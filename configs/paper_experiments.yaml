@@ -1,0 +1,51 @@
+---
+train_single_classifiers: true
+
+random_seed: 10
+
+cross_validation:
+  #class: predefinedkfold
+  class: RepeatedStratifiedKFold
+  n_splits: 4
+  n_repeats: 8
+  random_state: 10
+
+feature_extractors:
+  - feature_extractors.createConvNet:
+      name: convnet
+      init_random_state: 10
+      last_layer_size: 8
+      learning_rate: [1.0e-4, 1.0e-3]
+      max_epochs: 500
+      batch_size: 200
+      n_classes: 5
+
+  - feature_extractors.create_MetricLearningNetwork:
+      name: tripletloss
+      init_random_state: 10
+      module__num_outputs: 8
+      learning_rate: [1.0e-4, 1.0e-3]
+      max_epochs: 500
+      batch_size: 200
+      loss_function: tripletloss
+      loss_function__margin: 0.2
+      loss_function__triplets_per_anchor: 20
+      monitor_loss: train_loss
+
+base_classifiers:
+  - knn:
+      k: [1, 3, 5, 7, 9, 11, 13]
+      scaler: StandardScaler
+  - RandomForest:
+      name: "RF"
+      n_estimators: 1000
+      n_jobs: -1
+      max_features: [2, 3, 4, 5]
+      random_state: 10
+  - networks.SoftmaxClassifier:
+      init_random_state: 10
+      num_inputs: 7
+      num_outputs: 5
+      batch_size: 80
+      max_epochs: 500
+      optimizer__lr: [1.0e-4, 1.0e-3]
