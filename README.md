@@ -15,17 +15,18 @@
 # ESPset dataset description
 This repository provides the ESPset dataset, a real-world dataset for vibration-based fault diagnosis of electric submersible pumps used on offshore oil exploration.
 In addition to that, this repository also provides an experimental framework for adequately comparing research works based on the ESPset dataset and defines some benchmark classifiers.
-The ESPset dataset is a collection of vibration signals acquired from accelerometers strategically attached onto the components of Eletrical Submersible Centrifugal Pumps (ESP).
+The ESPset dataset is a collection of vibration signals acquired from accelerometers strategically attached onto the components of Electrical Submersible Centrifugal Pumps (ESP).
 An ESP belong to a class of equipment used in the extraction and exploration of oil and gas subject to severe working conditions.
 An ESP system consists of a coupled set of one or more electric motors, pumps and  protectors.
 
 The dataset is provided in two files: spectrum.csv and features.csv in https://drive.google.com/drive/folders/1Tr0ddbopjVgHtccYg5nVcsjMraWkJOaM?usp=sharing
 
 ## spectrum.csv
-This csv file is a matrix of 6032 lines and 12103 columns, whose values are float numbers seperated by a ';'. 
+This csv file is a matrix of 6032 lines and 12103 columns, whose values are float numbers separated by a ';'. 
 Each line of this file contains the spectrum of a single vibration signal collected from a sensor at a specific test condition of the ESP.
 Each value is the amplitude in inches per second (velocity) at a specific frequency.
-Each signal is normalized by the rotation frequency in which the ESP operates, in such a way that the amplitude with respect to the rotation frequency is always at the same position for all signal arrays.
+Each signal is normalized by the rotation frequency at which the ESP operates, in such a way that the amplitude with respect to the rotation frequency is always at the same position for all signal arrays.
+For instance, the normalization is made such that the 3003rd position of the array is always the 1x harmonic. Consequently, the 6006th is the second harmonic (2X). After this normalization, the first value of the array is discarded because it is complete noise, which results in the final array (the published spectrum.csv) having 1X at the 3002 position and 2X at 6005. Hence, the frequency resolution is $\frac{1}{3003} \approx 0.000333$.
 
 A simple way to load this matrix in python:
 ```python
@@ -34,7 +35,7 @@ signals = np.loadtxt('data/spectrum.csv', delimiter=';')
 ```
 
 ## features.csv
-This csv file of 6033 lines (one line for each signal + a header), contains some features and the labels for all signals:
+This csv file of 6033 lines (one line for each signal + a header) contains some features and the labels for all signals:
 - **esp_id**: The id of the ESP.
 - **label**: The classification label.
 
@@ -49,12 +50,12 @@ Each feature is defined as:
 - **rms(98,102)**: Root mean square of the amplitudes in the interval (98% $X$, 102% $X$).
 
 # Experimental Framework
-In order to facilate research on this dataset, we provide an easy quick usage and customization of experiments in this dataset.
+In order to facilitate research on this dataset, we provide an easy and quick way to use and customize experiments in this dataset.
 See notebook tutorial.ipynb for details.
 
 ## Requirements
 The code was only tested in Python 3.8 and Ubuntu 20.04, but should work without any modifications in Python 3.7+ and/or Windows.
-Pytorch 1.7+ with cuda is required for running the benchmark classifier Triplet network.
+Pytorch 1.7+ with CUDA is required for running the benchmark classifier Triplet network.
 To install requirements, run
 ```bash
 pip install -r requirements.txt
@@ -63,11 +64,11 @@ pip install -r requirements.txt
 
 ## How to run (.yaml configuration file)
 The framework can be run using the script [test.py](test.py). The script takes a yaml configuration file as an argument, informing how the experiment should be done. Examples of this configuration file are found in the [configs](configs) directory.
-These are the valid keywords insided the yaml file:
+These are the valid keywords inside the yaml file:
 - cross_validation (dict): Determines the cross validation method (sampler) to be used. Valid keys:
     - class (str): The class name of the cross validation method. Valid options are: RepeatedStratifiedKFold, Predefinedkfold, StratifiedShuffleSplit, StratifiedKFold.
-    - \*: Specific parameters of the sampler class should go here, at the same level as *class* keywork.
-- feature_extractors (dict): Determines which feature extractors should be used. This is only necessary when doing metric learning or something similar. Keys inside this dict should be a path (separated by a '.') to a function or class responsible of creating a object that has 2 methods:
+    - \*: Specific parameters of the sampler class should go here, at the same level as *class* keyword.
+- feature_extractors (dict): Determines which feature extractors should be used. This is only necessary when doing metric learning or something similar. Keys inside this dict should be a path (separated by a '.') to a function or class responsible for creating an object that has 2 methods:
     ```python
     def fit(self, X, y):
         pass
@@ -75,7 +76,7 @@ These are the valid keywords insided the yaml file:
     def transform(self, X):
         pass
     ```
-    parameters of the function can be passed by specifying it as keys/values inside the definition of the feature extractor. Example:
+    parameters of the function can be passed by specifying them as keys/values inside the definition of the feature extractor. Example:
     ```yaml
     - feature_extractors.create_MetricLearningNetwork:
         name: tripletnet
