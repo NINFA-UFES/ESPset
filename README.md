@@ -26,7 +26,7 @@ This csv file is a matrix of 6032 lines and 12103 columns, whose values are floa
 Each line of this file contains the spectrum of a single vibration signal collected from a sensor at a specific test condition of the ESP.
 Each value is the amplitude in inches per second (velocity) at a specific frequency.
 Each signal is normalized by the rotation frequency at which the ESP operates, in such a way that the amplitude with respect to the rotation frequency is always at the same position for all signal arrays.
-For instance, the normalization is made such that the 3003rd position of the array is always the 1x harmonic. Consequently, the 6006th is the second harmonic (2X). After this normalization, the first value of the array is discarded because it is complete noise, which results in the final array (the published spectrum.csv) having 1X at the 3002 position and 2X at 6005. Hence, the frequency resolution is $\frac{1}{3003} \approx 0.000333$.
+For instance, the normalization is made such that the 3003rd position of the array is always the 1x harmonic. Consequently, the 6006th is the second harmonic (2X). Hence, the frequency resolution is $\frac{1}{3003} \approx 0.000333$.
 
 A simple way to load this matrix in python:
 ```python
